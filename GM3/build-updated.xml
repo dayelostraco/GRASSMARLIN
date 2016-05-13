@@ -127,16 +127,7 @@
         <echo message="Grassmarlin.zip copied to installers"/>
     </target>
 
-    <target name="update-installers-windows" depends="zip-distribution">
-        <exec executable="${exec.nsis}">
-            <arg value="${installer.dir}\WindowsInstallers\gm.nsi"/>
-        </exec>
-        <exec executable="${exec.nsis}">
-            <arg value="${installer.dir}\WindowsInstallers\gm_32.nsi"/>
-        </exec>
-    </target>
-
-    <target name="update-installers-all" depends="zip-distribution, update-installers-linux, update-installers-windows">
+    <target name="update-installers-all" depends="zip-distribution, update-installers-linux">
         <delete file="Grassmarlin.zip"/>
     </target>
 
