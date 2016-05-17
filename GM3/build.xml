@@ -93,8 +93,8 @@
     <!-- Create a path element of the absolute paths to all required jars. -->
     <path id="project.classpath">
         <path location="${lib.antlr.path}"/>
-        <path location="${lib.commoms-io.path}"/>
-        <path location="${lib.commoms-lang.path}"/>
+        <path location="${lib.commons-io.path}"/>
+        <path location="${lib.commons-lang.path}"/>
         <path location="${lib.jnetpcap.path}"/>
         <path location="${lib.FPC4.path}"/>
         <path location="${lib.JNWizard.path}"/>
