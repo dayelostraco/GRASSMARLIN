@@ -4,14 +4,11 @@
  */
 package ui.views.graph.logical;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-
-import prefuse.data.Tuple;
 import prefuse.render.EdgeRenderer;
 import prefuse.visual.EdgeItem;
 import prefuse.visual.VisualItem;
-import ui.views.tree.visualnode.VisualNode;
+
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
@@ -35,12 +32,10 @@ public class ForwardingEdgeRenderer extends EdgeRenderer {
         
     }
 
-    @Override
     protected boolean shouldSkip(VisualItem source, VisualItem target) {
         return !(source.isVisible() && target.isVisible());
     }
 
-    @Override
     protected VisualItem getTarget(EdgeItem item) {
         VisualItem target = item.getTargetItem();
         if (willForward(target.getRow())) {
@@ -49,7 +44,6 @@ public class ForwardingEdgeRenderer extends EdgeRenderer {
         return target;
     }
 
-    @Override
     protected VisualItem getSource(EdgeItem item) {
         VisualItem source = item.getSourceItem();
         if (willForward(source.getRow())) {

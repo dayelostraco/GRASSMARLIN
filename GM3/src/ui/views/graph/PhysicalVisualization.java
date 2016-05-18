@@ -13,18 +13,7 @@ import core.topology.TopologyEntity.Type;
 import core.topology.TopologyNode;
 import core.types.ImmutableMap;
 import core.types.LogEmitter;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Image;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Stack;
-import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import prefuse.Constants;
 import prefuse.Visualization;
 import prefuse.action.ActionList;
@@ -36,6 +25,7 @@ import prefuse.action.assignment.ColorAction;
 import prefuse.action.assignment.FontAction;
 import prefuse.action.layout.CollapsedSubtreeLayout;
 import prefuse.action.layout.graph.RadialTreeLayout;
+import prefuse.activity.ActivityMap;
 import prefuse.activity.SlowInSlowOutPacer;
 import prefuse.data.Edge;
 import prefuse.data.Graph;
@@ -59,6 +49,17 @@ import prefuse.visual.expression.HoverPredicate;
 import prefuse.visual.expression.InGroupPredicate;
 import ui.icon.Icons;
 import ui.views.graph.logical.TreeRootAction;
+
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Stack;
+import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Private Class, belongs to and is solely used by PhysicalGraph.
@@ -155,11 +156,11 @@ class PhysicalVisualization extends Visualization {
         CollapsedSubtreeLayout subTreeLayout = new CollapsedSubtreeLayout(GRAPH);
         putAction(SUBTREE, subTreeLayout);
 
-        ActionList layout = new ActionList()
-                .add(new TreeRootAction(GRAPH))
-                .add(treeLayout)
-                .add(subTreeLayout)
-                .add(affixChildren);
+        ActionList layout = new ActionList();
+        layout.add(new TreeRootAction(GRAPH));
+        layout.add(treeLayout);
+        layout.add(subTreeLayout);
+        layout.add(affixChildren);
         putAction(LAYOUT, layout);
 
         //</editor-fold>
@@ -176,11 +177,11 @@ class PhysicalVisualization extends Visualization {
         ColorAction textColor = new ColorAction(Visualization.ALL_ITEMS, VisualItem.TEXTCOLOR, Color.BLACK.getRGB());
 
         /* colors the hosts the light blue color */
-        ColorAction hostFill = new ColorAction(NODES, IS_HOST_PREDICATE, VisualItem.FILLCOLOR, lightBlueOpaque)
-                .add(isHovered, lightBlueSolid);
+        ColorAction hostFill = new ColorAction(NODES, IS_HOST_PREDICATE, VisualItem.FILLCOLOR, lightBlueOpaque);
+        hostFill.add(isHovered, lightBlueSolid);
 
-        ColorAction switchFill = new ColorAction(AGGR, VisualItem.FILLCOLOR, lightGreenOpaque)
-                .add(isHovered, lightGreenSolid);
+        ColorAction switchFill = new ColorAction(AGGR, VisualItem.FILLCOLOR, lightGreenOpaque);
+        switchFill.add(isHovered, lightGreenSolid);
 
         ColorAction allEdges = new ColorAction(EDGES, VisualItem.STROKECOLOR) {
             final int weakTopologyColor = ColorLib.rgba(255, 255, 0, 200);
@@ -209,35 +210,35 @@ class PhysicalVisualization extends Visualization {
         nodeFont.add(fieldMatch(ENTITY, TopologyEntity.Type.SWITCH), large);
         FontAction edgeFont = new FontAction(EDGES, normal);
 
-        ActionList paintNodes = new ActionList()
-                .add(switchFill)
-                .add(hostFill)
-                .add(nodeFont)
-                .add(edgeFont)
-                .add(textColor);
+        ActionList paintNodes = new ActionList();
+        paintNodes.add(switchFill);
+        paintNodes.add(hostFill);
+        paintNodes.add(nodeFont);
+        paintNodes.add(edgeFont);
+        paintNodes.add(textColor);
 
-        ActionList paintEdges = new ActionList()
-                .add(allEdges);
+        ActionList paintEdges = new ActionList();
+        paintEdges.add(allEdges);
 
-        ActionList repaint = new ActionList()
-                .add(paintNodes)
-                .add(paintEdges)
-                .add(new RepaintAction());
+        ActionList repaint = new ActionList();
+        repaint.add(paintNodes);
+        repaint.add(paintEdges);
+        repaint.add(new RepaintAction());
         putAction(REPAINT, repaint);
 
-        ActionList animate = new ActionList()
-                .setPacerFunction(new SlowInSlowOutPacer())
-                .add(new QualityControlAnimator())
-                .add(new VisibilityAnimator(NODES))
-                .add(new PolarLocationAnimator(NODES))
-                .add(layout);
+        ActionList animate = new ActionList();
+        animate.setPacingFunction(new SlowInSlowOutPacer());
+        animate.add(new QualityControlAnimator());
+        animate.add(new VisibilityAnimator(NODES));
+        animate.add(new PolarLocationAnimator(NODES));
+        animate.add(layout);
         putAction(ANIMATE, animate);
 
-        ActionList userMode = new ActionList(ActionList.INFINITY)
-                .add(new QualityControlAnimator())
-                .add(affixChildren)
-                .add(aggrLayout)
-                .add(repaint);
+        ActionList userMode = new ActionList(ActionList.INFINITY);
+        userMode.add(new QualityControlAnimator());
+        userMode.add(affixChildren);
+        userMode.add(aggrLayout);
+        userMode.add(repaint);
         putAction(USER_MODE, userMode);
 
         alwaysRunAfter(ANIMATE, USER_MODE);
@@ -262,11 +263,11 @@ class PhysicalVisualization extends Visualization {
     AggregateItem generateSwitchDiagram(PhysicalNode physicalNode, Set<TopologyNode> nodes) {
         AggregateItem item = (AggregateItem) aggr().addItem();
 
-        Tuple proxyNode = graph.addNode()
-                .set(TEXT, physicalNode.GUID)
-                .set(ICON, null)
-                .set(DATA, physicalNode)
-                .set(ENTITY, TopologyEntity.Type.SWITCH);
+        Tuple proxyNode = graph.addNode();
+        proxyNode.set(TEXT, physicalNode.GUID);
+        proxyNode.set(ICON, null);
+        proxyNode.set(DATA, physicalNode);
+        proxyNode.set(ENTITY, TopologyEntity.Type.SWITCH);
 
         item.addItem(getVisualNode(proxyNode));
 
@@ -328,7 +329,7 @@ class PhysicalVisualization extends Visualization {
      * Will create or retrieve an Edge from the visualization by its {@link TopologyEdge#getVisualRow()
      * }. Will create its forward and back Nodes if they do not exist.
      *
-     * @param node TopologyEdge to retrieve an Edge for.
+     * @param edge TopologyEdge to retrieve an Edge for.
      * @return Edge of the TopologyEdge.
      */
     public synchronized Edge addEdge(TopologyEdge edge) {
@@ -336,9 +337,9 @@ class PhysicalVisualization extends Visualization {
         if (edge.getVisualRow() == -1) {
             Node src = getNode(edge.source);
             Node dst = getNode(edge.destination);
-            e = graph.addEdge(src, dst)
-                    .set(TEXT, edge.getDisplayText())
-                    .set(ENTITY, edge.type);
+            e = graph.addEdge(src, dst);
+            e.set(TEXT, edge.getDisplayText());
+            e.set(ENTITY, edge.type);
         } else {
             e = graph.getEdge(edge.getVisualRow());
         }
@@ -356,12 +357,12 @@ class PhysicalVisualization extends Visualization {
         Tuple n;
         if (node.getVisualRow() == -1) {
             
-            n = graph.addNode()
-                    .set(DATA, node)
-                    .set(HASH, node.hashCode())
-                    .set(ENTITY, node.type)
-                    .set(ICON, getIcon(node))
-                    .set(TEXT, node.getName());
+            n = graph.addNode();
+            n.set(DATA, node);
+            n.set(HASH, node.hashCode());
+            n.set(ENTITY, node.type);
+            n.set(ICON, getIcon(node));
+            n.set(TEXT, node.getName());
 
             if (Type.CLOUD.equals(node.type)) {
                 n.set(TEXT, "Transparent Topology");
@@ -788,13 +789,20 @@ class PhysicalVisualization extends Visualization {
      */
     void pause() {
         resumeActions.clear();
-        Object[] keys = getActions().keys();
-        for (Object obj : keys) {
-            String key = obj.toString();
-            if (getAction(key).isRunning()) {
-                resumeActions.add(key);
-                cancel(key);
+
+        try {
+            // Use reflection to gain access to the m_actions field
+            ActivityMap activityMap = (ActivityMap) FieldUtils.readField(this, "m_actions", true);
+            Object[] keys = activityMap.keys();
+            for (Object obj : keys) {
+                String key = obj.toString();
+                if (getAction(key).isRunning()) {
+                    resumeActions.add(key);
+                    cancel(key);
+                }
             }
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
         }
     }
 
